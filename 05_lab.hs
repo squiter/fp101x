@@ -28,29 +28,52 @@
   -- ===================================
 
   toDigitsRev :: Integer -> [Integer]
-  toDigitsRev = undefined
+  toDigitsRev n = reverse (toDigits n)
+
+  -- TESTS
+  -- evalRev xs = foldr (\x y -> x + (10 * y)) 0 xs
+  -- test11 = 2376 == evalRev (toDigitsRev 2376)
+  -- test12 = all (\d -> d >= 0 && d < 10) (toDigitsRev 2376)
+  -- test13 = length (toDigitsRev n) == length (show n) where n = 2367
 
   -- ===================================
   -- Ex. 2
   -- ===================================
 
   doubleSecond :: [Integer] -> [Integer]
-  doubleSecond = undefined
+  doubleSecond [] = []
+  doubleSecond [x] = [x]
+  doubleSecond (x:xs) = x : double (head xs) : doubleSecond (tail xs)
+    where
+      double n = n * 2
+
+  -- TEST
+  -- test21 = doubleSecond[8, 7, 6, 5] == [8, 14, 6, 10]
 
   -- ===================================
   -- Ex. 3
   -- ===================================
 
   sumDigits :: [Integer] -> Integer
-  sumDigits = undefined
+  sumDigits [] = 0
+  sumDigits [x]
+    | x >= 10 = sumIndividualDigits x
+    | otherwise = x
+  sumDigits (x:xs) = sumIndividualDigits x + sumDigits xs
 
+  -- Helper function to avoid two wheres
+  sumIndividualDigits :: Integer -> Integer
+  sumIndividualDigits x = sumDigits (toDigits x)
 
+  -- TESTS
+  -- test31 = sumDigits [8,14,6,10] == 20
+  -- test32 = sumDigits [3, 9, 4, 15, 8] == 30
   -- ===================================
   -- Ex. 4
   -- ===================================
 
   isValid :: Integer -> Bool
-  isValid = undefined
+  isValid x = sumDigits(doubleSecond (toDigitsRev x)) `mod` 10 == 0
 
 
   -- ===================================
