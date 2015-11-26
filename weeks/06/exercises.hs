@@ -36,3 +36,54 @@ any3 p xs = length (filter p xs) > 0
 any6 p xs = not (all (\ x -> not (p x)) xs)
 any7 p xs = foldr (\ x acc -> (p x) || acc) False xs
 -- :failed: any8 p xs = foldr (||) True (map p xs)
+
+
+-- 03- Choose the option that implements the Prelude function:
+-- takeWhile :: (a -> Bool) -> [a] -> [a] taking into account only
+-- finite, non-partial input lists with non-bottom values and where
+-- the predicate p always returns either True, or False, but not
+-- bottom.
+
+-- This function is like a filter
+-- tw1 _ [] = []
+-- tw1 p (x:xs)
+--   | p x = x : tw1 p xs
+--   | otherwise = tw1 p xs
+
+tw2 _ [] = []
+tw2 p (x:xs)
+  | p x = x : tw2 p xs
+  | otherwise = []
+
+-- Don't compile
+-- tw3 _ [] = []
+-- tw3 p (x:xs)
+--   | p x = tw3 xs
+--   | otherwise = []
+
+-- invert the array
+-- tw4 p = foldl (\ acc x -> if p x then x : acc else acc) []
+
+
+-- 04- Choose the option that implements the Prelude function
+-- dropWhile (a -> Bool) -> [a] -> [a] taking into account only
+-- finite, non-partial input lists with non-bottom values and where
+-- the predicate p always returns either True, or False, but not
+-- bottom.
+
+dw1 _ [] = []
+dw1 p (x:xs)
+  | p x = dw1 p xs
+  | otherwise = x : xs
+
+-- dw2 _ [] = []
+-- dw2 p (x:xs)
+--   | p x = dw2 p xs
+--   | otherwise = xs
+
+-- dw3 p = foldr (\ x acc -> if p x then acc else x : acc) []
+
+-- dw4 p = foldl add []
+--   where add [] x = if p x then [] else [x]
+--         add acc x = x : acc
+
