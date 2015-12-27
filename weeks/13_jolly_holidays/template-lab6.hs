@@ -9,10 +9,12 @@ data Rose a = a :> [Rose a] deriving Show
 -- ===================================
 
 root :: Rose a -> a
-root = error "you have to implement root"
+root (x :> _) = x
 
 children :: Rose a -> [Rose a]
-children = error "you have to implement children"
+children (_ :> xs) = xs
+
+tree1 = 'x' :> map (\c -> c :> []) ['a'..'A']
 
 xs = 0 :> [1 :> [2 :> [3 :> [4 :> [], 5 :> []]]], 6 :> [], 7 :> [8 :> [9 :> [10 :> []], 11 :> []], 12 :> [13 :> []]]]
 
@@ -23,10 +25,13 @@ ex2 = root . head . children . head . children . head . drop 2 $ children xs
 -- ===================================
 
 size :: Rose a -> Int
-size = error "you have to implement size"
+size (x :> xs) = 1 + sum [ size x' | x' <- xs]
 
 leaves :: Rose a -> Int
-leaves = error "you have to implement leaves"
+leaves (_ :> []) = 1
+leaves (_ :> xs) = sum $ map leaves xs
+
+tree2 = 1 :> map (\c -> c :> []) [1..5]
 
 ex7 = (*) (leaves . head . children . head . children $ xs) (product . map size . children . head . drop 2 . children $ xs)
 
@@ -35,7 +40,8 @@ ex7 = (*) (leaves . head . children . head . children $ xs) (product . map size 
 -- ===================================
 
 instance Functor Rose where
-  fmap = error "you have to implement fmap for Rose"
+  -- fmap f (x :> xs) = f x :> [fmap f xs] -- Why this implementation don't work?
+  fmap f (x :> xs) = (f x :> [fmap f x' | x' <- xs])
 
 ex10 = round . root . head . children . fmap (\x -> if x > 0.5 then x else 0) $ fmap (\x -> sin(fromIntegral x)) xs
 
@@ -47,21 +53,21 @@ class Monoid m where
   mempty :: m
   mappend :: m -> m -> m
 
-newtype Sum a = Sum a
-newtype Product a = Product a
+newtype Sum a = Sum a deriving Show
+newtype Product a = Product a deriving Show
 
 instance Num a => Monoid (Sum a) where
-  mempty = error "you have to implement mempty for Sum"
-  mappend = error "you have to implement mappend for Sum"
+  mempty = Sum 0
+  mappend (Sum x) (Sum y) = Sum (x + y)
 
 instance Num a => Monoid (Product a) where
-  mempty = error "you have to implement mempty for Product"
-  mappend = error "you have to implement mappend for Product"
+  mempty = Product 1
+  mappend (Product x) (Product y) = Product (x * y)
 
 unSum :: Sum a -> a
-unSum = error "you have to implement unSum"
+unSum (Sum a) = a
 unProduct :: Product a -> a
-unProduct = error "you have to implement unProduct"
+unProduct (Product a) = a
 
 num1 = mappend (mappend (Sum 2) (mappend (mappend mempty (Sum 1)) mempty)) (mappend (Sum 2) (Sum 1))
 
@@ -76,12 +82,22 @@ ex13 = unSum (mappend (Sum 5) (Sum (unProduct (mappend (Product (unSum num2)) (m
 class Functor f => Foldable f where
   fold :: Monoid m => f m -> m
   foldMap :: Monoid m => (a -> m) -> (f a -> m)
-  foldMap = error "you have to implement foldMap"
+  foldMap f = fold . fmap f
+
+flatten :: Rose a -> [a]
+flatten (x :> []) = [x]
+flatten (x :> xs) = x : (concat [flatten x' | x' <- xs])
 
 instance Foldable Rose where
-  fold = error "you have to implement fold for Rose"
+  fold tree = foldr mappend mempty $ flatten tree
+
+tree4 = 1 :> [2 :> [], 3 :> [4 :> []]]
+tree4' = fmap Product tree4
 
 sumxs = Sum 0 :> [Sum 13 :> [Sum 26 :> [Sum (-31) :> [Sum (-45) :> [], Sum 23 :> []]]], Sum 27 :> [], Sum 9 :> [Sum 15 :> [Sum 3 :> [Sum (-113) :> []], Sum 1 :> []], Sum 71 :> [Sum 55 :> []]]]
+
+ex16_tree = 42 :> [3 :> [2:> [], 1 :> [0 :> []]]]
+ex16 = unSum $ foldMap Sum ex16_tree
 
 ex15 = unSum (mappend (mappend (fold sumxs) (mappend (fold . head . drop 2 . children $ sumxs) (Sum 30))) (fold . head . children $ sumxs))
 
@@ -98,8 +114,12 @@ ex18 = unSum (mappend (mappend (foldMap (\x -> Sum x) xs) (Sum (unProduct (mappe
 -- ===================================
 
 fproduct, fsum :: (Foldable f, Num a) => f a -> a
-fsum = error "you have to implement fsum"
-fproduct = error "you have to implement fproduct"
+fsum f = unSum (foldMap Sum f)
+fproduct f = unProduct (foldMap Product f)
+
+ex19 = fsum xs
+
+ex20 = fproduct xs
 
 ex21 = ((fsum . head . drop 1 . children $ xs) + (fproduct . head . children . head . children . head . drop 2 . children $ xs)) - (fsum . head . children . head . children $ xs)
 
